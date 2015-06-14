@@ -8,17 +8,18 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="569.0" prefWidth="533.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="jp.yama07.diamondsquare.gui.FXMLDocumentController">
+<AnchorPane id="AnchorPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="569.0" prefWidth="533.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="jp.yama07.diamondsquare.gui.FXMLDocumentController">
     <children>
       <HBox alignment="CENTER" spacing="20.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
          <children>
+            <ProgressIndicator fx:id="piCalc" prefHeight="2.0" prefWidth="31.0" visible="false" />
             <HBox alignment="CENTER" spacing="10.0">
                <children>
                   <Label text="Roughness :" />
-                  <TextField fx:id="tfHightRoughness" alignment="CENTER_RIGHT" maxWidth="1.7976931348623157E308" prefHeight="26.0" prefWidth="242.0" />
+                  <TextField fx:id="tfHightRoughness" alignment="CENTER_RIGHT" maxWidth="1.7976931348623157E308" prefHeight="26.0" prefWidth="209.0" />
                </children>
             </HBox>
-            <Button alignment="CENTER" contentDisplay="TOP" defaultButton="true" mnemonicParsing="false" onAction="#handleButtonAction" prefHeight="26.0" prefWidth="158.0" text="Draw" />
+            <Button fx:id="bDraw" alignment="CENTER" contentDisplay="TOP" defaultButton="true" mnemonicParsing="false" onAction="#handleButtonAction" prefHeight="26.0" prefWidth="128.0" text="Draw" />
          </children>
       </HBox>
       <Canvas fx:id="cResult" height="513.0" layoutY="36.0" width="513.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="46.0" />
