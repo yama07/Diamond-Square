@@ -1,14 +1,26 @@
 package jp.yama07.diamondsquare.gui;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
+import javafx.concurrent.Task;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Button;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
+import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
+import javax.imageio.ImageIO;
 import jp.yama07.diamondsquare.DiamondSquare;
 
 /**
@@ -30,7 +42,12 @@ public class FXMLDocumentController implements Initializable {
     private TextField tfHightRoughness;
     @FXML
     private Canvas cResult;
-    private DiamondSquare ds;
+    @FXML
+    private Button bDraw;
+    @FXML
+    private Button bExport;
+    @FXML
+    private ProgressIndicator piCalc;
 
     /**
      * 描画ボタンのハンドル<BR>
@@ -46,15 +63,43 @@ public class FXMLDocumentController implements Initializable {
         } catch (NumberFormatException e) {
             tfHightRoughness.setText(String.valueOf(DEFAULT_HIGHT_ROUGHNESS));
         }
-        ds = new DiamondSquare(MATRIX_SIZE, MATRIX_VALUE_MAX, MATRIX_VALUE_MIN, roughness);
-        draw();
+
+        Task<double[][]> task = new DrawTask(roughness);
+        Thread th = new Thread(task);
+        //th.setDaemon(true);
+        setDisable(true);
+        th.start();
+    }
+
+    /**
+     * エクスポートボタンのハンドル<BR>
+     * Canvas上の描画内容をPNG画像として出力する。
+     *
+     * @param event
+     */
+    @FXML
+    private void handleExportButtonAction(ActionEvent event) {
+        final FileChooser fc = new FileChooser();
+        fc.getExtensionFilters().add(new ExtensionFilter("PNG", "*png"));
+        File saveFile = fc.showSaveDialog(((Node) event.getTarget()).getScene().getWindow());
+        if (saveFile != null) {
+            if (!saveFile.getName().endsWith(".png")) {
+                saveFile = new File(saveFile.getParent(), saveFile.getName() + "png");
+            }
+            try {
+                WritableImage snapshot = cResult.snapshot(new SnapshotParameters(), null);
+                ImageIO.write(SwingFXUtils.fromFXImage(snapshot, null), "png", saveFile);
+            } catch (IOException ex) {
+            }
+        }
     }
 
     /**
      * 初期化メソッド<BR>
      * TextFieldにデフォルト値をセットし、Canvasを白色に塗りつぶす。
+     *
      * @param url
-     * @param rb 
+     * @param rb
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -65,19 +110,53 @@ public class FXMLDocumentController implements Initializable {
     }
 
     /**
-     * CanvasにDiamondSquareアルゴリズムで生成されたマトリックスを描画する
+     * 画面内のコンポーネンとの有効／無効を切り替える
+     *
+     * @param value true:無効、 false:有効
      */
-    private void draw() {
-        GraphicsContext gc = cResult.getGraphicsContext2D();
-        double[][] matrix = ds.generateMatrix();
-        for (int i = 0; i < matrix.length; i++) {
-            for (int j = 0; j < matrix[i].length; j++) {
-                double value = matrix[i][j];
-                Color color = new Color(value, value, value, 1.0);
-                gc.setFill(color);
-                gc.fillRect(i * SQUARE_ROUGHNESS, j * SQUARE_ROUGHNESS, SQUARE_ROUGHNESS, SQUARE_ROUGHNESS);
+    private void setDisable(boolean value) {
+        bDraw.setDisable(value);
+        tfHightRoughness.setDisable(value);
+        piCalc.setVisible(value);
+    }
+
+    /**
+     * DiamondSqareアルゴリズムでマトリックスを生成しCanvasに描画するタスク
+     */
+    private class DrawTask extends Task<double[][]> {
+
+        private final double roughness;
+
+        public DrawTask(double roughness) {
+            this.roughness = roughness;
+        }
+
+        @Override
+        protected double[][] call() {
+            DiamondSquare ds = new DiamondSquare(MATRIX_SIZE, MATRIX_VALUE_MAX, MATRIX_VALUE_MIN, roughness);
+            double[][] matrix = ds.generateMatrix();
+            return matrix;
+        }
+
+        @Override
+        protected void succeeded() {
+            draw(getValue());
+            setDisable(false);
+        }
+
+        /**
+         * Canvasにマトリックスを描画する
+         */
+        private void draw(double[][] matrix) {
+            GraphicsContext gc = cResult.getGraphicsContext2D();
+            for (int i = 0; i < matrix.length; i++) {
+                for (int j = 0; j < matrix[i].length; j++) {
+                    double value = matrix[i][j];
+                    Color color = new Color(value, value, value, 1.0);
+                    gc.setFill(color);
+                    gc.fillRect(i * SQUARE_ROUGHNESS, j * SQUARE_ROUGHNESS, SQUARE_ROUGHNESS, SQUARE_ROUGHNESS);
+                }
             }
         }
     }
-
 }
