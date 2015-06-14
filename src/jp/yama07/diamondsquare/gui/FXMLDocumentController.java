@@ -1,17 +1,26 @@
 package jp.yama07.diamondsquare.gui;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.concurrent.Task;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
+import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
+import javax.imageio.ImageIO;
 import jp.yama07.diamondsquare.DiamondSquare;
 
 /**
@@ -36,6 +45,8 @@ public class FXMLDocumentController implements Initializable {
     @FXML
     private Button bDraw;
     @FXML
+    private Button bExport;
+    @FXML
     private ProgressIndicator piCalc;
 
     /**
@@ -58,6 +69,29 @@ public class FXMLDocumentController implements Initializable {
         //th.setDaemon(true);
         setDisable(true);
         th.start();
+    }
+
+    /**
+     * エクスポートボタンのハンドル<BR>
+     * Canvas上の描画内容をPNG画像として出力する。
+     *
+     * @param event
+     */
+    @FXML
+    private void handleExportButtonAction(ActionEvent event) {
+        final FileChooser fc = new FileChooser();
+        fc.getExtensionFilters().add(new ExtensionFilter("PNG", "*png"));
+        File saveFile = fc.showSaveDialog(((Node) event.getTarget()).getScene().getWindow());
+        if (saveFile != null) {
+            if (!saveFile.getName().endsWith(".png")) {
+                saveFile = new File(saveFile.getParent(), saveFile.getName() + "png");
+            }
+            try {
+                WritableImage snapshot = cResult.snapshot(new SnapshotParameters(), null);
+                ImageIO.write(SwingFXUtils.fromFXImage(snapshot, null), "png", saveFile);
+            } catch (IOException ex) {
+            }
+        }
     }
 
     /**
