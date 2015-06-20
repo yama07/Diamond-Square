@@ -16,6 +16,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
@@ -64,7 +65,7 @@ public class FXMLDocumentController implements Initializable {
             tfHightRoughness.setText(String.valueOf(DEFAULT_HIGHT_ROUGHNESS));
         }
 
-        Task<double[][]> task = new DrawTask(roughness);
+        Task<Canvas> task = new DrawTask(roughness);
         Thread th = new Thread(task);
         //th.setDaemon(true);
         setDisable(true);
@@ -123,7 +124,7 @@ public class FXMLDocumentController implements Initializable {
     /**
      * DiamondSqareアルゴリズムでマトリックスを生成しCanvasに描画するタスク
      */
-    private class DrawTask extends Task<double[][]> {
+    private class DrawTask extends Task<Canvas> {
 
         private final double roughness;
 
@@ -132,23 +133,27 @@ public class FXMLDocumentController implements Initializable {
         }
 
         @Override
-        protected double[][] call() {
+        protected Canvas call() {
             DiamondSquare ds = new DiamondSquare(MATRIX_SIZE, MATRIX_VALUE_MAX, MATRIX_VALUE_MIN, roughness);
             double[][] matrix = ds.generateMatrix();
-            return matrix;
+            Canvas canvas = drawCanvas(matrix);
+            return canvas;
         }
 
         @Override
         protected void succeeded() {
-            draw(getValue());
+            Canvas canvas = getValue();
+            Image image = canvas.snapshot(new SnapshotParameters(), null);
+            cResult.getGraphicsContext2D().drawImage(image, 0, 0);
             setDisable(false);
         }
 
         /**
-         * Canvasにマトリックスを描画する
+         * マトリックスを描画したCanvasを返す
          */
-        private void draw(double[][] matrix) {
-            GraphicsContext gc = cResult.getGraphicsContext2D();
+        private Canvas drawCanvas(double[][] matrix) {
+            Canvas canvas = new Canvas(cResult.getWidth(), cResult.getHeight());
+            GraphicsContext gc = canvas.getGraphicsContext2D();
             for (int i = 0; i < matrix.length; i++) {
                 for (int j = 0; j < matrix[i].length; j++) {
                     double value = matrix[i][j];
@@ -157,6 +162,7 @@ public class FXMLDocumentController implements Initializable {
                     gc.fillRect(i * SQUARE_ROUGHNESS, j * SQUARE_ROUGHNESS, SQUARE_ROUGHNESS, SQUARE_ROUGHNESS);
                 }
             }
+            return canvas;
         }
     }
 }
