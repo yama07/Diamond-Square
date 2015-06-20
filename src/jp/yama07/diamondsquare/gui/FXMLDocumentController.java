@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.concurrent.Task;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
@@ -16,6 +18,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
@@ -49,6 +52,8 @@ public class FXMLDocumentController implements Initializable {
     @FXML
     private ProgressIndicator piCalc;
 
+    private BooleanProperty isProcessing = new SimpleBooleanProperty(false);
+
     /**
      * 描画ボタンのハンドル<BR>
      * 値のバラつき割合をTextFieldから読み取り描画を行う。 TextFieldの値が不正の場合は、デフォルト値を使用する。
@@ -64,7 +69,7 @@ public class FXMLDocumentController implements Initializable {
             tfHightRoughness.setText(String.valueOf(DEFAULT_HIGHT_ROUGHNESS));
         }
 
-        Task<double[][]> task = new DrawTask(roughness);
+        Task<Canvas> task = new DrawTask(roughness);
         Thread th = new Thread(task);
         //th.setDaemon(true);
         setDisable(true);
@@ -96,7 +101,8 @@ public class FXMLDocumentController implements Initializable {
 
     /**
      * 初期化メソッド<BR>
-     * TextFieldにデフォルト値をセットし、Canvasを白色に塗りつぶす。
+     * TextFieldにデフォルト値をセットし、Canvasを白色に塗りつぶす。<BR>
+     * 各コンポーネンのプロパティとのバインディングを行う。
      *
      * @param url
      * @param rb
@@ -107,6 +113,11 @@ public class FXMLDocumentController implements Initializable {
         GraphicsContext gc = cResult.getGraphicsContext2D();
         gc.setFill(Color.WHITE);
         gc.fillRect(0, 0, cResult.getWidth(), cResult.getHeight());
+
+        tfHightRoughness.disableProperty().bind(isProcessing);
+        bDraw.disableProperty().bind(isProcessing);
+        bExport.disableProperty().bind(isProcessing);
+        piCalc.visibleProperty().bind(isProcessing);
     }
 
     /**
@@ -115,15 +126,13 @@ public class FXMLDocumentController implements Initializable {
      * @param value true:無効、 false:有効
      */
     private void setDisable(boolean value) {
-        bDraw.setDisable(value);
-        tfHightRoughness.setDisable(value);
-        piCalc.setVisible(value);
+        isProcessing.set(value);
     }
 
     /**
      * DiamondSqareアルゴリズムでマトリックスを生成しCanvasに描画するタスク
      */
-    private class DrawTask extends Task<double[][]> {
+    private class DrawTask extends Task<Canvas> {
 
         private final double roughness;
 
@@ -132,23 +141,27 @@ public class FXMLDocumentController implements Initializable {
         }
 
         @Override
-        protected double[][] call() {
+        protected Canvas call() {
             DiamondSquare ds = new DiamondSquare(MATRIX_SIZE, MATRIX_VALUE_MAX, MATRIX_VALUE_MIN, roughness);
             double[][] matrix = ds.generateMatrix();
-            return matrix;
+            Canvas canvas = drawCanvas(matrix);
+            return canvas;
         }
 
         @Override
         protected void succeeded() {
-            draw(getValue());
+            Canvas canvas = getValue();
+            Image image = canvas.snapshot(new SnapshotParameters(), null);
+            cResult.getGraphicsContext2D().drawImage(image, 0, 0);
             setDisable(false);
         }
 
         /**
-         * Canvasにマトリックスを描画する
+         * マトリックスを描画したCanvasを返す
          */
-        private void draw(double[][] matrix) {
-            GraphicsContext gc = cResult.getGraphicsContext2D();
+        private Canvas drawCanvas(double[][] matrix) {
+            Canvas canvas = new Canvas(cResult.getWidth(), cResult.getHeight());
+            GraphicsContext gc = canvas.getGraphicsContext2D();
             for (int i = 0; i < matrix.length; i++) {
                 for (int j = 0; j < matrix[i].length; j++) {
                     double value = matrix[i][j];
@@ -157,6 +170,7 @@ public class FXMLDocumentController implements Initializable {
                     gc.fillRect(i * SQUARE_ROUGHNESS, j * SQUARE_ROUGHNESS, SQUARE_ROUGHNESS, SQUARE_ROUGHNESS);
                 }
             }
+            return canvas;
         }
     }
 }

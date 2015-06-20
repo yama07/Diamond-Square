@@ -12,17 +12,17 @@
     <children>
       <HBox alignment="CENTER" spacing="20.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
          <children>
-            <ProgressIndicator fx:id="piCalc" prefHeight="2.0" prefWidth="31.0" visible="false" />
             <HBox alignment="CENTER" spacing="10.0">
                <children>
                   <Label text="Roughness :" />
                   <TextField fx:id="tfHightRoughness" alignment="CENTER_RIGHT" maxWidth="1.7976931348623157E308" prefHeight="26.0" prefWidth="90.0" />
                </children>
             </HBox>
-            <Button fx:id="bDraw" alignment="CENTER" contentDisplay="TOP" defaultButton="true" mnemonicParsing="false" onAction="#handleButtonAction" prefHeight="26.0" prefWidth="128.0" text="Draw" />
-            <Button fx:id="bExport" mnemonicParsing="false" onAction="#handleExportButtonAction" prefWidth="100.0" text="Export" />
+            <Button fx:id="bDraw" alignment="CENTER" contentDisplay="TOP" defaultButton="true" mnemonicParsing="false" onAction="#handleButtonAction" prefWidth="180.0" text="Draw" />
+            <Button fx:id="bExport" mnemonicParsing="false" onAction="#handleExportButtonAction" prefWidth="80.0" text="Export" />
          </children>
       </HBox>
       <Canvas fx:id="cResult" height="513.0" layoutY="36.0" width="513.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="46.0" />
+      <ProgressIndicator fx:id="piCalc" layoutX="253.0" layoutY="262.0" visible="false" />
     </children>
 </AnchorPane>
