@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.concurrent.Task;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
@@ -49,6 +51,8 @@ public class FXMLDocumentController implements Initializable {
     private Button bExport;
     @FXML
     private ProgressIndicator piCalc;
+
+    private BooleanProperty isProcessing = new SimpleBooleanProperty(false);
 
     /**
      * 描画ボタンのハンドル<BR>
@@ -97,7 +101,8 @@ public class FXMLDocumentController implements Initializable {
 
     /**
      * 初期化メソッド<BR>
-     * TextFieldにデフォルト値をセットし、Canvasを白色に塗りつぶす。
+     * TextFieldにデフォルト値をセットし、Canvasを白色に塗りつぶす。<BR>
+     * 各コンポーネンのプロパティとのバインディングを行う。
      *
      * @param url
      * @param rb
@@ -108,6 +113,11 @@ public class FXMLDocumentController implements Initializable {
         GraphicsContext gc = cResult.getGraphicsContext2D();
         gc.setFill(Color.WHITE);
         gc.fillRect(0, 0, cResult.getWidth(), cResult.getHeight());
+
+        tfHightRoughness.disableProperty().bind(isProcessing);
+        bDraw.disableProperty().bind(isProcessing);
+        bExport.disableProperty().bind(isProcessing);
+        piCalc.visibleProperty().bind(isProcessing);
     }
 
     /**
@@ -116,9 +126,7 @@ public class FXMLDocumentController implements Initializable {
      * @param value true:無効、 false:有効
      */
     private void setDisable(boolean value) {
-        bDraw.setDisable(value);
-        tfHightRoughness.setDisable(value);
-        piCalc.setVisible(value);
+        isProcessing.set(value);
     }
 
     /**
